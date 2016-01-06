@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+import os.path
+import sys
+import subprocess
+import re
+from sys import exit
+from os import system
+
+cflow_path = "/usr/local/bin/cflow"
+dot_path = "/usr/local/bin/dot"
+color = ["#eecc80", "#ccee80", "#80ccee", "#eecc80", "#80eecc"];
+shape =["box", "ellipse", "octagon", "hexagon", "diamond"];
+shape_len = len(shape)
+pref = "cflow"
+exts = ["svg", "png"]
+index = {}
+output = []
+count = {}
+
+
+if not os.path.isfile(cflow_path):
+    exit('cflow not found on: %s' % cflow_path)
+
+args = sys.argv[1:]
+args.insert(0, cflow_path)
+args.insert(1, "-l")
+
+p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+(stdout, stderr) = p.communicate()
+
+if stderr:
+    exit(stderr)
+
+lines = stdout.split('\n')
+for line in lines:
+    if line == '':
+        continue
+    line = re.sub("\(.*$", "", line)
+    line = re.sub("^\{\s*", "", line)
+    line = re.sub("\}\s*", "\t", line)
+
+    parts = line.split("\t")
+    n = parts[0]
+    f = parts[1]
+    index[n] = f
+    if n != '0':
+        s = "%s->%s" % (index[str(int(n) - 1)], f)
+        if s not in count:
+            output.append("node [color=\"{0}\" shape={1}];edge [color=\"{2}\"];\n{3}\n".format(color[int(n) - 1], shape[int(n) % shape_len], color[int(n) % shape_len], s))
+            count[s] = True
+    else:
+        output.append("%s [shape=box];\n" % f)
+
+output.insert(0, "digraph G {\nnode [peripheries=2 style=\"filled,rounded\" fontname=\"Vera Sans YuanTi Mono\" color=\"%s\"];\nrankdir=LR;\nlabel=\"%s\"\n" % (color[0], args[2]))
+output.append("}\n")
+
+f = open(pref + ".dot", "w")
+f.write(''.join(output))
+f.close()
+print("dot output to %s.dot" % pref)
+
+if os.path.isfile(dot_path):
+    for ext in exts:
+        system("dot -T%s %s.dot -o %s.%s" % (ext, pref, pref, ext))
+        #subprocess.call(["dot", "-T", ext, pref + ".dot", "-o", pref + '.' + ext], shell = True)
+        print("%s output to %s.%s" % (ext, pref, ext))
+else:
+    print("'dot(GraphViz)' not installed.")
+
