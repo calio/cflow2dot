@@ -83,24 +83,21 @@ pthreadlib = [
 "pthread_setaffinity_np"
 ]
 
-ap = argparse.ArgumentParser()
-ap.add_argument("-e", "--exclude", metavar="symbols",
-                help="exclude these symbols (comma separated values) from output")
-ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
-                help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
-ap.add_argument("--no-stdlib", action="store_true",
-                help="exclude C stdlib symbols from output")
-ap.add_argument("--no-pthreadlib", action="store_true",
-                help="exclude pthread lib symbols from output")
-ap.add_argument("-v", "--verbose", action="store_true",
-                help="increase verbosity level")
-ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
-                help="arguments that are passed to cflow")
-opts = ap.parse_args()
-
-
-if not os.path.isfile(cflow_path):
-    exit('cflow not found on: %s' % cflow_path)
+def get_parser():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-e", "--exclude", metavar="symbols",
+                    help="exclude these symbols (comma separated values) from output")
+    ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
+                    help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
+    ap.add_argument("--no-stdlib", action="store_true",
+                    help="exclude C stdlib symbols from output")
+    ap.add_argument("--no-pthreadlib", action="store_true",
+                    help="exclude pthread lib symbols from output")
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="increase verbosity level")
+    ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
+                    help="arguments that are passed to cflow")
+    return ap
 
 def call_cflow(args):
     args.insert(0, cflow_path)
@@ -199,6 +196,12 @@ def write_output(output):
 
 
 if __name__ == '__main__':
+    ap = get_parser()
+    opts = ap.parse_args()
+
+    if not os.path.isfile(cflow_path):
+        exit('cflow not found on: %s' % cflow_path)
+
     res = call_cflow(opts.cflow_args)
     output = get_output(opts, res)
     write_output(output)
