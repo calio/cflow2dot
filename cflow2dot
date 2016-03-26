@@ -48,7 +48,7 @@ for line in lines:
     if n != '0':
         s = "%s->%s" % (index[str(int(n) - 1)], f)
         if s not in count:
-            output.append("node [color=\"{0}\" shape={1}];edge [color=\"{2}\"];\n{3}\n".format(color[int(n) - 1], shape[int(n) % shape_len], color[int(n) % shape_len], s))
+            output.append("node [color=\"{0}\" shape={1}];edge [color=\"{2}\"];\n{3}\n".format(color[int(n) % shape_len], shape[int(n) % shape_len], color[int(n) % shape_len], s))
             count[s] = True
     else:
         output.append("%s [shape=box];\n" % f)
