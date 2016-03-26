@@ -1,2 +1,2 @@
 install:
-	cp cflow2dot /usr/local/bin
+	cp cflow2dot.py /usr/local/bin/cflow2dot

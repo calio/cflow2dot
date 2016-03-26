@@ -197,6 +197,8 @@ def write_output(output):
     else:
         print("'dot(GraphViz)' not installed.")
 
-res = call_cflow(opts.cflow_args)
-output = get_output(opts, res)
-write_output(output)
+
+if __name__ == '__main__':
+    res = call_cflow(opts.cflow_args)
+    output = get_output(opts, res)
+    write_output(output)
