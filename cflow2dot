@@ -98,7 +98,6 @@ ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
                 help="arguments that are passed to cflow")
 opts = ap.parse_args()
 
-exclude_symbols = opts.exclude.split(",") if opts.exclude else None
 
 if not os.path.isfile(cflow_path):
     exit('cflow not found on: %s' % cflow_path)
@@ -120,7 +119,8 @@ def build_excludes(opts):
     res = {}
 
     if opts.exclude:
-        for v in opts.exclude:
+        exclude_symbols = opts.exclude.split(",")
+        for v in exclude_symbols:
             res[v] = True
     if opts.no_stdlib:
         for v in stdlib:
