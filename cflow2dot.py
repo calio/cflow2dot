@@ -38,7 +38,7 @@ stdlib = [
 "strcpy", "strcspn", "strerror", "strlen", "strncat", "strncmp", "strncpy",
 "strpbrk", "strrchr", "strspn", "strstr", "strtok", "strxfrm", "asctime",
 "clock", "ctime", "difftime", "gmtime", "localtime", "mktime", "strftime",
-"time"]
+"time","vsnprintf"]
 
 pthreadlib = [
 "pthread_atfork", "pthread_attr_destroy", "pthread_attr_getdetachstate",
