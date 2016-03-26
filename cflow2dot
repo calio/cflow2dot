@@ -19,12 +19,34 @@ exts = ["svg", "png"]
 index = {}
 count = {}
 
+stdlib = [
+"assert", "isalnum", "isalpha", "iscntrl", "isdigit", "isgraph", "islower",
+"isprint", "ispunct", "isspace", "isupper", "isxdigit", "toupper", "tolower",
+"errno", "setlocale", "acos", "asin", "atan", "atan2", "ceil", "cos", "cosh",
+"exp", "fabs", "floor", "fmod", "frexp", "ldexp", "log", "log10", "modf",
+"pow", "sin", "sinh", "sqrt", "tan", "tanh", "stdlib.h", "setjmp", "longjmp",
+"signal", "raise", "clearerr", "fclose", "feof", "fflush", "fgetc", "fgetpos",
+"fgets", "fopen", "fprintf", "fputc", "fputs", "fread", "freopen", "fscanf",
+"fseek", "fsetpos", "ftell", "fwrite", "getc", "getchar", "gets", "perror",
+"printf", "putchar", "puts", "remove", "rewind", "scanf", "setbuf", "setvbuf",
+"sprintf", "sscanf", "tmpfile", "tmpnam", "ungetc", "vfprintf", "vprintf",
+"vsprintf", "abort", "abs", "atexit", "atof", "atoi", "atol", "bsearch",
+"calloc", "div", "exit", "getenv", "free", "labs", "ldiv", "malloc", "mblen",
+"mbstowcs", "mbtowc", "qsort", "rand", "realloc", "strtod", "strtol",
+"strtoul", "srand", "system", "wctomb", "wcstombs", "memchr", "memcmp",
+"memcpy", "memmove", "memset", "strcat", "strchr", "strcmp", "strcoll",
+"strcpy", "strcspn", "strerror", "strlen", "strncat", "strncmp", "strncpy",
+"strpbrk", "strrchr", "strspn", "strstr", "strtok", "strxfrm", "asctime",
+"clock", "ctime", "difftime", "gmtime", "localtime", "mktime", "strftime",
+"time"]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-e", "--exclude", metavar="symbols",
                 help="exclude these symbols (comma separated values) from output")
 ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
                 help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
+ap.add_argument("--no-stdlib", action="store_true",
+                help="exclude C stdlib symbols from output")
 ap.add_argument("-v", "--verbose", action="store_true",
                 help="increase verbosity level")
 ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
@@ -49,12 +71,25 @@ def call_cflow(args):
     return stdout
 
 
+def build_excludes(opts):
+    res = {}
+
+    if opts.exclude:
+        for v in opts.exclude:
+            res[v] = True
+    if opts.no_stdlib:
+        for v in stdlib:
+            res[v] = True
+
+    return res
+
 def get_output(opts, res):
     output = []
     skip = False
     exclude_index = -1
     lines = res.split('\n')
     verbose = opts.verbose
+    exclude = build_excludes(opts)
 
     for line in lines:
         if line == '':
@@ -71,7 +106,7 @@ def get_output(opts, res):
         index[n] = f
 
         # test if callee is in exclude list
-        if opts.exclude and f in opts.exclude:
+        if f in exclude:
             skip = True
             exclude_index = n
             if verbose:
