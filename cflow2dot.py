@@ -151,12 +151,6 @@ def get_output(opts, res):
         index[n] = f
 
         # test if callee is in exclude list
-        if f in exclude:
-            skip = True
-            exclude_index = n
-            if verbose:
-                print("exclude function: " + f)
-            continue
         if skip:
             # exclude all sub function calls from the excluded function. If we
             # get another callee at the same indent level, then stop skipping
@@ -167,6 +161,12 @@ def get_output(opts, res):
             else:
                 skip = False
                 exclude_index = -1
+        if f in exclude:
+            skip = True
+            exclude_index = n
+            if verbose:
+                print("exclude function: " + f)
+            continue
 
         if n != '0':
             s = "%s->%s" % (index[str(int(n) - 1)], f)
