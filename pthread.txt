@@ -99,3 +99,4 @@ pthread_spin_lock
 pthread_spin_trylock
 pthread_spin_unlock
 pthread_testcancel
+pthread_setaffinity_np

@@ -79,7 +79,8 @@ pthreadlib = [
 "pthread_setcanceltype", "pthread_setconcurrency", "pthread_setschedparam",
 "pthread_setschedprio", "pthread_setspecific", "pthread_sigmask",
 "pthread_spin_destroy", "pthread_spin_init", "pthread_spin_lock",
-"pthread_spin_trylock", "pthread_spin_unlock", "pthread_testcancel"
+"pthread_spin_trylock", "pthread_spin_unlock", "pthread_testcancel",
+"pthread_setaffinity_np"
 ]
 
 ap = argparse.ArgumentParser()
