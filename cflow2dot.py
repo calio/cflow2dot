@@ -107,7 +107,7 @@ def call_cflow(args):
 
     (stdout, stderr) = p.communicate()
 
-    if stderr:
+    if stderr and not stdout:
         exit(stderr)
     return stdout
 
