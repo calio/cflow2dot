@@ -4,6 +4,8 @@ import os.path
 import sys
 import subprocess
 import re
+import argparse
+
 from sys import exit
 from os import system
 
@@ -15,57 +17,101 @@ shape_len = len(shape)
 pref = "cflow"
 exts = ["svg", "png"]
 index = {}
-output = []
 count = {}
 
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-e", "--exclude", metavar="symbols",
+                help="exclude these symbols (comma separated values) from output")
+ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
+                help="arguments that are passed to cflow")
+ap.add_argument("-v", "--verbose", action="store_true",
+                help="increase verbosity level")
+opts = ap.parse_args()
+
+exclude_symbols = opts.exclude.split(",") if opts.exclude else None
 
 if not os.path.isfile(cflow_path):
     exit('cflow not found on: %s' % cflow_path)
 
-args = sys.argv[1:]
-args.insert(0, cflow_path)
-args.insert(1, "-l")
+def call_cflow(args):
+    args.insert(0, cflow_path)
+    args.insert(1, "-l")
 
-p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-(stdout, stderr) = p.communicate()
+    (stdout, stderr) = p.communicate()
 
-if stderr:
-    exit(stderr)
+    if stderr:
+        exit(stderr)
+    return stdout
 
-lines = stdout.split('\n')
-for line in lines:
-    if line == '':
-        continue
-    line = re.sub("\(.*$", "", line)
-    line = re.sub("^\{\s*", "", line)
-    line = re.sub("\}\s*", "\t", line)
 
-    parts = line.split("\t")
-    n = parts[0]
-    f = parts[1]
-    index[n] = f
-    if n != '0':
-        s = "%s->%s" % (index[str(int(n) - 1)], f)
-        if s not in count:
-            output.append("node [color=\"{0}\" shape={1}];edge [color=\"{2}\"];\n{3}\n".format(color[int(n) % shape_len], shape[int(n) % shape_len], color[int(n) % shape_len], s))
-            count[s] = True
+def get_output(opts, res):
+    output = []
+    skip = False
+    exclude_index = -1
+    lines = res.split('\n')
+    verbose = opts.verbose
+
+    for line in lines:
+        if line == '':
+            continue
+        line = re.sub("\(.*$", "", line)
+        line = re.sub("^\{\s*", "", line)
+        line = re.sub("\}\s*", "\t", line)
+
+        parts = line.split("\t")
+        # indent level
+        n = parts[0]
+        # function name of callee
+        f = parts[1]
+        index[n] = f
+
+        # test if callee is in exclude list
+        if opts.exclude and f in opts.exclude:
+            skip = True
+            exclude_index = n
+            if verbose:
+                print("exclude function: " + f)
+            continue
+        if skip:
+            # exclude all sub function calls from the excluded function. If we
+            # get another callee at the same indent level, then stop skipping
+            if int(n) > int(exclude_index):
+                if verbose:
+                    print("exclude sub function: " + f)
+                continue
+            else:
+                skip = False
+                exclude_index = -1
+
+        if n != '0':
+            s = "%s->%s" % (index[str(int(n) - 1)], f)
+            if s not in count:
+                output.append("node [color=\"{0}\" shape={1}];edge [color=\"{2}\"];\n{3}\n".format(color[int(n) % shape_len], shape[int(n) % shape_len], color[int(n) % shape_len], s))
+                count[s] = True
+        else:
+            output.append("%s [shape=box];\n" % f)
+
+    output.insert(0, "digraph G {\nnode [peripheries=2 style=\"filled,rounded\" fontname=\"Vera Sans YuanTi Mono\" color=\"%s\"];\nrankdir=LR;\nlabel=\"%s\"\n" % (color[0], opts.cflow_args[2]))
+    output.append("}\n")
+    return output
+
+
+def write_output(output):
+    f = open(pref + ".dot", "w")
+    f.write(''.join(output))
+    f.close()
+    print("dot output to %s.dot" % pref)
+
+    if os.path.isfile(dot_path):
+        for ext in exts:
+            system("dot -T%s %s.dot -o %s.%s" % (ext, pref, pref, ext))
+            print("%s output to %s.%s" % (ext, pref, ext))
     else:
-        output.append("%s [shape=box];\n" % f)
+        print("'dot(GraphViz)' not installed.")
 
-output.insert(0, "digraph G {\nnode [peripheries=2 style=\"filled,rounded\" fontname=\"Vera Sans YuanTi Mono\" color=\"%s\"];\nrankdir=LR;\nlabel=\"%s\"\n" % (color[0], args[2]))
-output.append("}\n")
-
-f = open(pref + ".dot", "w")
-f.write(''.join(output))
-f.close()
-print("dot output to %s.dot" % pref)
-
-if os.path.isfile(dot_path):
-    for ext in exts:
-        system("dot -T%s %s.dot -o %s.%s" % (ext, pref, pref, ext))
-        #subprocess.call(["dot", "-T", ext, pref + ".dot", "-o", pref + '.' + ext], shell = True)
-        print("%s output to %s.%s" % (ext, pref, ext))
-else:
-    print("'dot(GraphViz)' not installed.")
-
+res = call_cflow(opts.cflow_args)
+output = get_output(opts, res)
+write_output(output)
