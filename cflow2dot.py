@@ -84,7 +84,7 @@ pthreadlib = [
 ]
 
 def get_parser():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="cflow2dot: generate call graph from C source code")
     ap.add_argument("-e", "--exclude", metavar="symbols",
                     help="exclude these symbols (comma separated values) from output")
     ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
