@@ -87,16 +87,16 @@ def get_parser():
     ap = argparse.ArgumentParser(description="cflow2dot: generate call graph from C source code")
     ap.add_argument("-e", "--exclude", metavar="symbols",
                     help="exclude these symbols (comma separated values) from output")
-    ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
-                    help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
-    ap.add_argument("--no-stdlib", action="store_true",
-                    help="exclude C stdlib symbols from output")
-    ap.add_argument("--no-pthreadlib", action="store_true",
-                    help="exclude pthread lib symbols from output")
-    ap.add_argument("-v", "--verbose", action="store_true",
-                    help="increase verbosity level")
     ap.add_argument("-m", "--main", metavar="NAME",
                     help="Assume main function to be called NAME")
+    ap.add_argument("-r", "--rank", default="LR", choices=["LR", "same"],
+                    help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="increase verbosity level")
+    ap.add_argument("--no-pthreadlib", action="store_true",
+                    help="exclude pthread lib symbols from output")
+    ap.add_argument("--no-stdlib", action="store_true",
+                    help="exclude C stdlib symbols from output")
     ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
                     help="arguments that are passed to cflow")
     return ap
