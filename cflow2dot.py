@@ -95,13 +95,22 @@ def get_parser():
                     help="exclude pthread lib symbols from output")
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="increase verbosity level")
+    ap.add_argument("-m", "--main", metavar="NAME",
+                    help="Assume main function to be called NAME")
     ap.add_argument("cflow_args", nargs=argparse.REMAINDER,
                     help="arguments that are passed to cflow")
     return ap
 
-def call_cflow(args):
+def call_cflow(opts):
+    args = opts.cflow_args
     args.insert(0, cflow_path)
     args.insert(1, "-l")
+    if opts.main:
+        args.insert(1, "-m")
+        args.insert(2, opts.main)
+
+    if opts.verbose:
+        print "calling cflow with args: ", args
 
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -202,6 +211,6 @@ if __name__ == '__main__':
     if not os.path.isfile(cflow_path):
         exit('cflow not found on: %s' % cflow_path)
 
-    res = call_cflow(opts.cflow_args)
+    res = call_cflow(opts)
     output = get_output(opts, res)
     write_output(output)
