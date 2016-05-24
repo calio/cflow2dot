@@ -5,6 +5,7 @@ import sys
 import subprocess
 import re
 import argparse
+import json
 
 from sys import exit
 from os import system
@@ -93,6 +94,8 @@ def get_parser():
                     help="if rank is \"LR\", graph is left to right. If rank is \"same\", graph is top to bottom. Default value is \"LR\".")
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="increase verbosity level")
+    ap.add_argument("--no", metavar="NAME", action="append",
+                    help="exclude NAME symbol set (configured in ~/.cflowdotrc) from output")
     ap.add_argument("--no-pthreadlib", action="store_true",
                     help="exclude pthread lib symbols from output")
     ap.add_argument("--no-stdlib", action="store_true",
@@ -134,6 +137,23 @@ def build_excludes(opts):
     if opts.no_pthreadlib:
         for v in pthreadlib:
             res[v] = True
+
+    if opts.no:
+        rcfile = os.path.expanduser("~") + "/.cflow2dotrc"
+        print(rcfile)
+        if not os.path.isfile(rcfile):
+            print("no ~/.cflow2dotrc file found, --no argument is skipped")
+            return res
+        else:
+            fp = open(rcfile)
+            rcdata = json.load(fp)
+            for exclude_set in opts.no:
+                if rcdata.get(exclude_set):
+                    for func_name in rcdata[exclude_set]:
+                        res[func_name] = True
+                else:
+                    print("no key \"" + exclude_set + "\" specified in " + rcfile)
+            fp.close()
 
     return res
 

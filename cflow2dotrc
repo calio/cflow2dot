@@ -1,0 +1,9 @@
+{
+"nginx":[
+    "ngx_str_null", "ngx_pnalloc", "ngx_sprintf", "ngx_str_set", "ngx_log_error",
+    "ngx_queue_init", "ngx_queue_remove", "ngx_queue_empty", "ngx_queue_add",
+    "ngx_log_debug0", "ngx_cpymem", "ngx_strlow", "ngx_log_debug3", "ngx_palloc",
+    "ngx_log_debug4", "ngx_queue_prev", "ngx_queue_data", "ngx_free_chain",
+    "ngx_buf_size", "ngx_log_debug2", "ngx_memcpy"
+]
+}
